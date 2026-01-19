@@ -1,0 +1,8 @@
+# Building Your Own Agentic Workflow Stack
+
+Summary: The tools are here—Notion agents, Claude, custom GPTs, Zapier, Make. But most people are still using them like souped-up assistants. The real unlock is designing workflows where AI agents handle entire loops: intake → processing → output → notification. This piece would map out a practical framework for building your own agentic stack, using ECOS/Boxy as a case study.
+Related Articles: Introducing Notion 3.0 (../Flow%20%F0%9F%93%A5/Introducing%20Notion%203%200%202d7ab660f3b281a694c1eb3f48802d7d.md), Notion launches agents for data analysis and task automation | TechCrunch (../Flow%20%F0%9F%93%A5/Notion%20launches%20agents%20for%20data%20analysis%20and%20task%20%202d7ab660f3b281e1b709cc659a7f0768.md), Using Claude inside Notion AI (../Flow%20%F0%9F%93%A5/Using%20Claude%20inside%20Notion%20AI%202d7ab660f3b28074a2e9e32c7526168c.md)
+Related Themes: Agentic Productivity (../Lenses/Agentic%20Productivity%2003397e105abe4e19a52daebbb879f1fc.md)
+Status: Idea
+Overview: Practical framework for designing personal AI agent workflows that handle multi-step processes autonomously.
+The Pitch: A how-to guide or framework for readers who want to move beyond chatbot interactions into genuine agentic workflows. Practical, opinionated, with a working example (Boxy + Flow → Ideas pipeline). Could become a series: Part 1 on principles, Part 2 on tooling, Part 3 on maintenance and iteration.
