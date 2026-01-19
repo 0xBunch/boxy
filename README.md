@@ -122,6 +122,7 @@ BOXY is not:
 
 ## Credits
 
-Built by [BUNCH](https://twitter.com/0xBunch)
+Built by [BUNCH](https://twitter.com/bunch)
 
 Powered by Claude (Anthropic) via Notion AI
+
