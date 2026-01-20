@@ -88,6 +88,12 @@ input::placeholder {
   text-decoration: underline;
 }
 
+.optional {
+  font-weight: 400;
+  color: #555;
+  text-transform: none;
+}
+
 .actions {
   display: flex;
   gap: 12px;

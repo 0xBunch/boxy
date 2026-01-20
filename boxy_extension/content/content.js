@@ -1,5 +1,5 @@
 // BOXY Content Script
-// Handles page metadata extraction, text selection, and modal injection
+// Handles page metadata extraction, text selection, modal injection, and selection tooltip
 
 (function() {
   // Prevent multiple injections
@@ -7,6 +7,7 @@
   window.__boxyLoaded = true;
 
   let modalIframe = null;
+  let selectionTooltip = null;
 
   // ============================================
   // METADATA EXTRACTION
@@ -51,22 +52,166 @@
     return selection ? selection.toString().trim() : '';
   }
 
+  function getMainContent() {
+    // Try to find main content area
+    const selectors = ['article', '[role="main"]', 'main', '.post-content', '.article-content', '.entry-content', '#content'];
+    for (const sel of selectors) {
+      const el = document.querySelector(sel);
+      if (el) return el.innerText.substring(0, 3000);
+    }
+    return document.body.innerText.substring(0, 3000);
+  }
+
+  // ============================================
+  // SELECTION TOOLTIP
+  // ============================================
+
+  let selectionDebounceTimer = null;
+
+  function setupSelectionListener() {
+    document.addEventListener('mouseup', (e) => {
+      // Don't show tooltip if clicked inside tooltip or modal
+      if (e.target.closest('.boxy-selection-tooltip') || e.target.closest('#boxy-modal-frame')) {
+        return;
+      }
+
+      // Debounce rapid selections (50ms)
+      if (selectionDebounceTimer) {
+        clearTimeout(selectionDebounceTimer);
+      }
+
+      selectionDebounceTimer = setTimeout(() => {
+        const selection = window.getSelection();
+        const text = selection ? selection.toString().trim() : '';
+
+        // Hide tooltip if no selection or too short
+        if (!text || text.length < 10) {
+          hideSelectionTooltip();
+          return;
+        }
+
+        // Show tooltip near selection
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+
+        showSelectionTooltip(
+          rect.left + window.scrollX + rect.width / 2,
+          rect.top + window.scrollY - 10,
+          text
+        );
+      }, 50);
+    });
+
+    // Hide on scroll or resize
+    document.addEventListener('scroll', hideSelectionTooltip, { passive: true });
+    window.addEventListener('resize', hideSelectionTooltip, { passive: true });
+
+    // Hide on click outside
+    document.addEventListener('mousedown', (e) => {
+      if (!e.target.closest('.boxy-selection-tooltip')) {
+        hideSelectionTooltip();
+      }
+    });
+  }
+
+  function showSelectionTooltip(x, y, text) {
+    hideSelectionTooltip();
+
+    // Add tooltip styles if not present
+    if (!document.getElementById('boxy-tooltip-styles')) {
+      const style = document.createElement('style');
+      style.id = 'boxy-tooltip-styles';
+      style.textContent = `
+        .boxy-selection-tooltip {
+          position: absolute;
+          z-index: 2147483646;
+          background: #1a1a2e;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+          padding: 6px;
+          opacity: 0;
+          transform: translateY(5px);
+          transition: opacity 0.15s, transform 0.15s;
+        }
+        .boxy-selection-tooltip.show {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        .boxy-tooltip-btn {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 14px;
+          background: #2563eb;
+          border: none;
+          border-radius: 6px;
+          color: #fff;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+        .boxy-tooltip-btn:hover {
+          background: #1d4ed8;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    selectionTooltip = document.createElement('div');
+    selectionTooltip.className = 'boxy-selection-tooltip';
+    selectionTooltip.innerHTML = `
+      <button class="boxy-tooltip-btn">
+        <span>⚡</span> Save Spark
+      </button>
+    `;
+
+    // Position above selection, centered
+    selectionTooltip.style.left = `${x}px`;
+    selectionTooltip.style.top = `${y}px`;
+    selectionTooltip.style.transform = 'translate(-50%, -100%)';
+
+    // Click handler
+    selectionTooltip.querySelector('.boxy-tooltip-btn').addEventListener('click', () => {
+      hideSelectionTooltip();
+      createModal('spark', { data: { text, sourceUrl: window.location.href } });
+    });
+
+    document.body.appendChild(selectionTooltip);
+
+    // Animate in
+    requestAnimationFrame(() => {
+      selectionTooltip.classList.add('show');
+    });
+  }
+
+  function hideSelectionTooltip() {
+    if (selectionTooltip) {
+      selectionTooltip.classList.remove('show');
+      setTimeout(() => {
+        if (selectionTooltip && selectionTooltip.parentNode) {
+          selectionTooltip.parentNode.removeChild(selectionTooltip);
+        }
+        selectionTooltip = null;
+      }, 150);
+    }
+  }
+
   // ============================================
   // MODAL MANAGEMENT
   // ============================================
 
   function createModal(mode, initialData = {}) {
-    // Remove existing modal if present
     removeModal();
 
-    // Create iframe for modal
     modalIframe = document.createElement('iframe');
     modalIframe.id = 'boxy-modal-frame';
     modalIframe.style.cssText = `
       position: fixed;
       top: 0;
       right: 0;
-      width: 400px;
+      width: 420px;
       height: 100vh;
       border: none;
       z-index: 2147483647;
@@ -74,34 +219,73 @@
       background: #1a1a2e;
     `;
 
-    // Get page metadata
     const metadata = getPageMetadata();
     const selectedText = getSelectedText();
+    const mainContent = getMainContent();
 
-    // Build initial data for modal
     const data = {
       mode,
       metadata,
       selectedText,
+      mainContent,
       ...initialData
     };
-
-    // Create modal HTML content
-    const modalHTML = generateModalHTML(data);
 
     document.body.appendChild(modalIframe);
 
     // Write content to iframe
     const iframeDoc = modalIframe.contentDocument || modalIframe.contentWindow.document;
     iframeDoc.open();
-    iframeDoc.write(modalHTML);
+    iframeDoc.write(generateModalHTML(data));
     iframeDoc.close();
 
     // Handle messages from iframe
     window.addEventListener('message', handleIframeMessage);
-
-    // Handle escape key
     document.addEventListener('keydown', handleEscapeKey);
+
+    // Fetch lenses and other data after modal is ready
+    setTimeout(() => {
+      // Fetch lenses
+      chrome.runtime.sendMessage({ action: 'fetchLenses' }, (response) => {
+        if (modalIframe && response?.lenses) {
+          modalIframe.contentWindow.postMessage({
+            action: 'setLenses',
+            lenses: response.lenses
+          }, '*');
+        }
+      });
+
+      // Check for duplicates (Flow mode only)
+      if (mode === 'flow') {
+        chrome.runtime.sendMessage({ action: 'checkDuplicate', url: metadata.url }, (response) => {
+          if (modalIframe && response?.isDuplicate) {
+            modalIframe.contentWindow.postMessage({
+              action: 'showDuplicateWarning'
+            }, '*');
+          }
+        });
+
+        // Auto-detect classification
+        chrome.runtime.sendMessage({ action: 'detectClassification', url: metadata.url }, (response) => {
+          if (modalIframe && response?.classification) {
+            modalIframe.contentWindow.postMessage({
+              action: 'setClassification',
+              classification: response.classification
+            }, '*');
+          }
+        });
+
+        // Generate summary
+        chrome.runtime.sendMessage({ action: 'generateSummary', content: mainContent }, (response) => {
+          if (modalIframe && response?.summary) {
+            modalIframe.contentWindow.postMessage({
+              action: 'setSummary',
+              summary: response.summary
+            }, '*');
+          }
+        });
+      }
+    }, 100);
   }
 
   function removeModal() {
@@ -155,6 +339,18 @@
         }
       });
     }
+
+    if (action === 'regenerateSummary') {
+      const mainContent = getMainContent();
+      chrome.runtime.sendMessage({ action: 'generateSummary', content: mainContent }, (response) => {
+        if (modalIframe && response?.summary) {
+          modalIframe.contentWindow.postMessage({
+            action: 'setSummary',
+            summary: response.summary
+          }, '*');
+        }
+      });
+    }
   }
 
   // ============================================
@@ -162,7 +358,6 @@
   // ============================================
 
   function showToast(message, isError = false) {
-    // Remove existing toast
     const existing = document.getElementById('boxy-toast');
     if (existing) existing.remove();
 
@@ -185,7 +380,6 @@
       animation: boxySlideIn 0.3s ease;
     `;
 
-    // Add animation keyframes
     if (!document.getElementById('boxy-toast-styles')) {
       const style = document.createElement('style');
       style.id = 'boxy-toast-styles';
@@ -200,7 +394,6 @@
 
     document.body.appendChild(toast);
 
-    // Remove after delay
     setTimeout(() => {
       toast.style.animation = 'boxySlideIn 0.3s ease reverse';
       setTimeout(() => toast.remove(), 300);
@@ -221,11 +414,7 @@
 <html>
 <head>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -233,6 +422,7 @@
       color: #e5e5e5;
       padding: 24px;
       min-height: 100vh;
+      overflow-y: auto;
     }
 
     .header {
@@ -242,12 +432,7 @@
       margin-bottom: 20px;
     }
 
-    .logo {
-      font-size: 20px;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: -0.5px;
-    }
+    .logo { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
 
     .close-btn {
       background: none;
@@ -258,16 +443,9 @@
       line-height: 1;
       padding: 4px;
     }
+    .close-btn:hover { color: #fff; }
 
-    .close-btn:hover {
-      color: #fff;
-    }
-
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 24px;
-    }
+    .tabs { display: flex; gap: 8px; margin-bottom: 24px; }
 
     .tab {
       flex: 1;
@@ -281,37 +459,24 @@
       font-weight: 500;
       transition: all 0.15s ease;
     }
+    .tab:hover { border-color: #555; color: #ccc; }
+    .tab.active { background: #2563eb; border-color: #2563eb; color: #fff; }
 
-    .tab:hover {
-      border-color: #555;
-      color: #ccc;
-    }
-
-    .tab.active {
-      background: #2563eb;
-      border-color: #2563eb;
-      color: #fff;
-    }
-
-    .form-group {
-      margin-bottom: 16px;
-    }
+    .form-group { margin-bottom: 16px; }
 
     label {
       display: block;
-      font-size: 12px;
-      font-weight: 500;
+      font-size: 11px;
+      font-weight: 600;
       color: #888;
       margin-bottom: 6px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
-    input[type="text"],
-    textarea,
-    select {
+    input[type="text"], textarea, select {
       width: 100%;
-      padding: 12px;
+      padding: 10px 12px;
       background: #16162a;
       border: 1px solid #333;
       border-radius: 8px;
@@ -319,56 +484,89 @@
       font-size: 14px;
       font-family: inherit;
     }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: #2563eb; }
 
-    input:focus,
-    textarea:focus,
-    select:focus {
-      outline: none;
-      border-color: #2563eb;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
+    textarea { resize: vertical; min-height: 70px; }
 
     .url-display {
       font-size: 12px;
       color: #666;
       word-break: break-all;
-      padding: 8px 0;
+      padding: 6px 0;
     }
 
-    .energy-picker {
-      display: flex;
-      gap: 8px;
+    .duplicate-warning {
+      display: none;
+      padding: 8px 12px;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid #f59e0b;
+      border-radius: 6px;
+      color: #f59e0b;
+      font-size: 12px;
+      margin-bottom: 16px;
     }
+    .duplicate-warning.show { display: block; }
+
+    .summary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .regenerate-btn {
+      background: none;
+      border: none;
+      color: #2563eb;
+      font-size: 12px;
+      cursor: pointer;
+      padding: 2px 6px;
+    }
+    .regenerate-btn:hover { text-decoration: underline; }
+
+    .energy-picker { display: flex; gap: 8px; }
 
     .energy-btn {
       flex: 1;
-      padding: 10px;
+      padding: 8px;
       background: #16162a;
       border: 1px solid #333;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13px;
       transition: all 0.15s ease;
     }
-
-    .energy-btn:hover {
-      border-color: #555;
-    }
-
+    .energy-btn:hover { border-color: #555; }
     .energy-btn.hot { color: #ef4444; }
     .energy-btn.warm { color: #f59e0b; }
     .energy-btn.cool { color: #3b82f6; }
-
-    .energy-btn.selected {
-      border-width: 2px;
-    }
+    .energy-btn.selected { border-width: 2px; }
     .energy-btn.hot.selected { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
     .energy-btn.warm.selected { border-color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
     .energy-btn.cool.selected { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+
+    .lenses-container { margin-bottom: 16px; }
+    .lenses-select { margin-bottom: 8px; }
+    .selected-lenses { display: flex; flex-wrap: wrap; gap: 6px; }
+    .lens-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      background: rgba(37, 99, 235, 0.2);
+      border: 1px solid #2563eb;
+      border-radius: 16px;
+      color: #60a5fa;
+      font-size: 12px;
+    }
+    .lens-tag button {
+      background: none;
+      border: none;
+      color: #60a5fa;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0 2px;
+    }
+    .lens-tag button:hover { color: #fff; }
 
     .submit-btn {
       width: 100%;
@@ -380,32 +578,16 @@
       font-size: 15px;
       font-weight: 600;
       cursor: pointer;
-      margin-top: 24px;
+      margin-top: 20px;
       transition: background 0.15s ease;
     }
+    .submit-btn:hover { background: #1d4ed8; }
+    .submit-btn:disabled { background: #333; cursor: not-allowed; }
 
-    .submit-btn:hover {
-      background: #1d4ed8;
-    }
+    .error { color: #ef4444; font-size: 12px; margin-top: 4px; }
 
-    .submit-btn:disabled {
-      background: #333;
-      cursor: not-allowed;
-    }
-
-    .error {
-      color: #ef4444;
-      font-size: 12px;
-      margin-top: 4px;
-    }
-
-    .panel {
-      display: none;
-    }
-
-    .panel.active {
-      display: block;
-    }
+    .panel { display: none; }
+    .panel.active { display: block; }
 
     select {
       appearance: none;
@@ -429,6 +611,10 @@
 
   <!-- Flow Panel -->
   <div id="flow-panel" class="panel ${mode === 'flow' ? 'active' : ''}">
+    <div id="duplicate-warning" class="duplicate-warning">
+      ⚠️ This URL is already in your Flow
+    </div>
+
     <div class="form-group">
       <label>Title</label>
       <input type="text" id="flow-title" value="${escapeHtml(metadata.title)}" />
@@ -440,14 +626,30 @@
     </div>
 
     <div class="form-group">
+      <div class="summary-header">
+        <label>Summary</label>
+        <button class="regenerate-btn" onclick="regenerateSummary()">↻ Regenerate</button>
+      </div>
+      <textarea id="flow-summary" placeholder="Auto-generating..."></textarea>
+    </div>
+
+    <div class="form-group">
       <label>My Take (required)</label>
       <textarea id="flow-take" placeholder="What made you save this?"></textarea>
       <div id="flow-take-error" class="error" style="display: none;">My Take is required</div>
     </div>
 
+    <div class="lenses-container">
+      <label>Lenses</label>
+      <select id="flow-lenses-select" class="lenses-select" onchange="addLens('flow')">
+        <option value="">+ Add lens...</option>
+      </select>
+      <div id="flow-selected-lenses" class="selected-lenses"></div>
+    </div>
+
     <div class="form-group">
       <label>Energy</label>
-      <div class="energy-picker">
+      <div class="energy-picker" id="flow-energy-picker">
         <button class="energy-btn hot" data-energy="hot" onclick="selectEnergy('flow', 'hot')">hot</button>
         <button class="energy-btn warm selected" data-energy="warm" onclick="selectEnergy('flow', 'warm')">warm</button>
         <button class="energy-btn cool" data-energy="cool" onclick="selectEnergy('flow', 'cool')">cool</button>
@@ -461,6 +663,7 @@
         <option value="video">video</option>
         <option value="podcast">podcast</option>
         <option value="thread">thread</option>
+        <option value="paper">paper</option>
         <option value="tool">tool</option>
         <option value="newsletter">newsletter</option>
         <option value="book">book</option>
@@ -492,6 +695,14 @@
       </select>
     </div>
 
+    <div class="lenses-container">
+      <label>Lenses</label>
+      <select id="spark-lenses-select" class="lenses-select" onchange="addLens('spark')">
+        <option value="">+ Add lens...</option>
+      </select>
+      <div id="spark-selected-lenses" class="selected-lenses"></div>
+    </div>
+
     <div class="form-group">
       <label>Energy</label>
       <div class="energy-picker" id="spark-energy-picker">
@@ -513,13 +724,10 @@
     const pageUrl = ${JSON.stringify(metadata.url)};
     let flowEnergy = 'warm';
     let sparkEnergy = 'warm';
+    let flowLenses = [];
+    let sparkLenses = [];
+    let allLenses = [];
     let saving = false;
-
-    function escapeHtml(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
-    }
 
     function closeModal() {
       window.parent.postMessage({ action: 'close' }, '*');
@@ -533,25 +741,78 @@
     }
 
     function selectEnergy(form, energy) {
-      const picker = form === 'flow'
-        ? document.querySelector('#flow-panel .energy-picker')
-        : document.querySelector('#spark-energy-picker');
-
+      const picker = document.getElementById(form + '-energy-picker');
       picker.querySelectorAll('.energy-btn').forEach(btn => btn.classList.remove('selected'));
       picker.querySelector('[data-energy="' + energy + '"]').classList.add('selected');
-
       if (form === 'flow') flowEnergy = energy;
       else sparkEnergy = energy;
+    }
+
+    function addLens(form) {
+      const select = document.getElementById(form + '-lenses-select');
+      const id = select.value;
+      if (!id) return;
+
+      const lens = allLenses.find(l => l.id === id);
+      if (!lens) return;
+
+      const lensArray = form === 'flow' ? flowLenses : sparkLenses;
+      if (lensArray.find(l => l.id === id)) {
+        select.value = '';
+        return;
+      }
+
+      lensArray.push(lens);
+      renderLenses(form);
+      select.value = '';
+    }
+
+    function removeLens(form, id) {
+      if (form === 'flow') {
+        flowLenses = flowLenses.filter(l => l.id !== id);
+      } else {
+        sparkLenses = sparkLenses.filter(l => l.id !== id);
+      }
+      renderLenses(form);
+    }
+
+    function renderLenses(form) {
+      const container = document.getElementById(form + '-selected-lenses');
+      const lensArray = form === 'flow' ? flowLenses : sparkLenses;
+
+      container.innerHTML = lensArray.map(lens =>
+        '<span class="lens-tag">' + lens.name +
+        '<button onclick="removeLens(\\'' + form + '\\', \\'' + lens.id + '\\')">&times;</button></span>'
+      ).join('');
+    }
+
+    function populateLensDropdowns() {
+      ['flow', 'spark'].forEach(form => {
+        const select = document.getElementById(form + '-lenses-select');
+        select.innerHTML = '<option value="">+ Add lens...</option>';
+        allLenses.forEach(lens => {
+          const opt = document.createElement('option');
+          opt.value = lens.id;
+          opt.textContent = lens.name;
+          select.appendChild(opt);
+        });
+      });
+    }
+
+    function regenerateSummary() {
+      document.getElementById('flow-summary').value = '';
+      document.getElementById('flow-summary').placeholder = 'Generating...';
+      window.parent.postMessage({ action: 'regenerateSummary' }, '*');
     }
 
     function saveFlow() {
       if (saving) return;
 
       const title = document.getElementById('flow-title').value.trim();
+      const summary = document.getElementById('flow-summary').value.trim();
       const myTake = document.getElementById('flow-take').value.trim();
       const classification = document.getElementById('flow-classification').value;
 
-      // Validate
       const takeError = document.getElementById('flow-take-error');
       if (!myTake) {
         takeError.style.display = 'block';
@@ -570,9 +831,11 @@
         data: {
           title,
           url: pageUrl,
+          summary,
           myTake,
           energy: flowEnergy,
-          classification
+          classification,
+          lenses: flowLenses.map(l => l.id)
         }
       }, '*');
     }
@@ -583,7 +846,6 @@
       const text = document.getElementById('spark-text').value.trim();
       const type = document.getElementById('spark-type').value;
 
-      // Validate
       const textError = document.getElementById('spark-text-error');
       if (!text) {
         textError.style.display = 'block';
@@ -603,14 +865,35 @@
           text,
           type,
           energy: sparkEnergy,
-          sourceUrl: pageUrl
+          sourceUrl: pageUrl,
+          lenses: sparkLenses.map(l => l.id)
         }
       }, '*');
     }
 
-    // Listen for save results
+    // Listen for messages from parent
     window.addEventListener('message', (event) => {
-      if (event.data.action === 'saveResult') {
+      const { action } = event.data;
+
+      if (action === 'setLenses') {
+        allLenses = event.data.lenses || [];
+        populateLensDropdowns();
+      }
+
+      if (action === 'showDuplicateWarning') {
+        document.getElementById('duplicate-warning').classList.add('show');
+      }
+
+      if (action === 'setClassification') {
+        document.getElementById('flow-classification').value = event.data.classification;
+      }
+
+      if (action === 'setSummary') {
+        document.getElementById('flow-summary').value = event.data.summary;
+        document.getElementById('flow-summary').placeholder = 'Summary...';
+      }
+
+      if (action === 'saveResult') {
         saving = false;
         const flowBtn = document.querySelector('#flow-panel .submit-btn');
         const sparkBtn = document.querySelector('#spark-panel .submit-btn');
@@ -676,4 +959,10 @@
       return;
     }
   });
+
+  // ============================================
+  // INITIALIZE
+  // ============================================
+
+  setupSelectionListener();
 })();

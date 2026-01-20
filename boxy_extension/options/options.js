@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const apiKeyInput = document.getElementById('api-key');
   const flowDbInput = document.getElementById('flow-db');
   const sparksDbInput = document.getElementById('sparks-db');
+  const lensesDbInput = document.getElementById('lenses-db');
+  const sourcesDbInput = document.getElementById('sources-db');
   const testBtn = document.getElementById('test-btn');
   const saveBtn = document.getElementById('save-btn');
   const statusEl = document.getElementById('status');
@@ -20,6 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (config.databases?.sparks) {
       sparksDbInput.value = config.databases.sparks;
+    }
+    if (config.databases?.lenses) {
+      lensesDbInput.value = config.databases.lenses;
+    }
+    if (config.databases?.sources) {
+      sourcesDbInput.value = config.databases.sources;
     }
   });
 
@@ -60,6 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const apiKey = apiKeyInput.value.trim();
     const flowDb = extractDatabaseId(flowDbInput.value);
     const sparksDb = extractDatabaseId(sparksDbInput.value);
+    const lensesDb = extractDatabaseId(lensesDbInput.value);
+    const sourcesDb = extractDatabaseId(sourcesDbInput.value);
 
     if (!apiKey) {
       showStatus('Please enter your Notion API key', 'error');
@@ -75,7 +85,9 @@ document.addEventListener('DOMContentLoaded', () => {
       notion_api_key: apiKey,
       databases: {
         flow: flowDb,
-        sparks: sparksDb
+        sparks: sparksDb,
+        lenses: lensesDb,
+        sources: sourcesDb
       }
     };
 
@@ -101,6 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const apiKey = apiKeyInput.value.trim();
     const flowDb = extractDatabaseId(flowDbInput.value);
     const sparksDb = extractDatabaseId(sparksDbInput.value);
+    const lensesDb = extractDatabaseId(lensesDbInput.value);
+    const sourcesDb = extractDatabaseId(sourcesDbInput.value);
 
     if (!apiKey) {
       showStatus('API key is required', 'error');
@@ -119,7 +133,9 @@ document.addEventListener('DOMContentLoaded', () => {
       notion_api_key: apiKey,
       databases: {
         flow: flowDb,
-        sparks: sparksDb
+        sparks: sparksDb,
+        lenses: lensesDb,
+        sources: sourcesDb
       }
     };
 

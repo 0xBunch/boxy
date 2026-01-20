@@ -38,7 +38,7 @@ async function notionRequest(endpoint, method, body) {
 // FLOW & SPARK CREATION
 // ============================================
 
-async function createFlowItem({ title, url, myTake, energy, classification }) {
+async function createFlowItem({ title, url, myTake, energy, classification, summary, lenses }) {
   const config = await getConfig();
   if (!config?.databases?.flow) {
     throw new Error('Flow database not configured');
@@ -68,13 +68,38 @@ async function createFlowItem({ title, url, myTake, energy, classification }) {
     }
   };
 
-  return notionRequest('/pages', 'POST', {
+  // Add summary if provided
+  if (summary) {
+    properties['Summary'] = {
+      rich_text: [{ text: { content: summary } }]
+    };
+  }
+
+  // Add lenses relations if provided
+  if (lenses && lenses.length > 0) {
+    properties['Lenses'] = {
+      relation: lenses.map(id => ({ id }))
+    };
+  }
+
+  const result = await notionRequest('/pages', 'POST', {
     parent: { database_id: config.databases.flow },
     properties
   });
+
+  // Handle source tracking if configured (pass config to avoid redundant read)
+  if (config.databases?.sources && url) {
+    try {
+      await handleSourceTracking(url, config.databases.sources, config);
+    } catch (e) {
+      console.log('Source tracking failed:', e);
+    }
+  }
+
+  return result;
 }
 
-async function createSpark({ text, type, energy, sourceUrl }) {
+async function createSpark({ text, type, energy, sourceUrl, lenses }) {
   const config = await getConfig();
   if (!config?.databases?.sparks) {
     throw new Error('Sparks database not configured');
@@ -91,6 +116,13 @@ async function createSpark({ text, type, energy, sourceUrl }) {
       select: { name: energy || 'warm' }
     }
   };
+
+  // Add lenses relations if provided
+  if (lenses && lenses.length > 0) {
+    properties['Lenses'] = {
+      relation: lenses.map(id => ({ id }))
+    };
+  }
 
   // Add source URL as page content if provided
   const children = sourceUrl ? [
@@ -137,6 +169,144 @@ async function testConnection() {
     return { success: true };
   } catch (error) {
     return { success: false, error: error.message };
+  }
+}
+
+// ============================================
+// LENSES, DUPLICATES, SUMMARIES, SOURCES
+// ============================================
+
+const LENS_CACHE_TTL = 300000; // 5 minutes
+
+async function fetchLenses(forceRefresh = false) {
+  const config = await getConfig();
+  if (!config?.databases?.lenses) {
+    return [];
+  }
+
+  // Check cache first (with TTL)
+  if (!forceRefresh) {
+    const cached = await chrome.storage.local.get(['cachedLenses', 'lensesCachedAt']);
+    const age = Date.now() - (cached.lensesCachedAt || 0);
+    if (cached.cachedLenses && age < LENS_CACHE_TTL) {
+      return cached.cachedLenses;
+    }
+  }
+
+  try {
+    const result = await notionRequest(`/databases/${config.databases.lenses}/query`, 'POST', {
+      filter: {
+        property: 'Status',
+        select: { equals: 'active' }
+      },
+      sorts: [{ property: 'Lens', direction: 'ascending' }],
+      page_size: 100
+    });
+
+    const lenses = result.results.map(page => ({
+      id: page.id,
+      name: page.properties.Lens?.title?.[0]?.plain_text || 'Unnamed'
+    }));
+
+    // Cache lenses with timestamp
+    await chrome.storage.local.set({
+      cachedLenses: lenses,
+      lensesCachedAt: Date.now()
+    });
+
+    return lenses;
+  } catch (error) {
+    console.error('Fetch lenses error:', error);
+    // Try to return cached lenses on error (ignore TTL for fallback)
+    const cached = await chrome.storage.local.get('cachedLenses');
+    return cached.cachedLenses || [];
+  }
+}
+
+async function checkDuplicate(url) {
+  const config = await getConfig();
+  if (!config?.databases?.flow) {
+    return false;
+  }
+
+  try {
+    const result = await notionRequest(`/databases/${config.databases.flow}/query`, 'POST', {
+      filter: {
+        property: 'URL',
+        url: { equals: url }
+      },
+      page_size: 1
+    });
+
+    return result.results && result.results.length > 0;
+  } catch (error) {
+    console.log('Duplicate check error:', error);
+    return false;
+  }
+}
+
+function generateSummary(content) {
+  if (!content) return '';
+
+  // Simple extractive summary: get first few sentences
+  const sentences = content
+    .replace(/\s+/g, ' ')
+    .split(/[.!?]+/)
+    .filter(s => s.trim().length > 20)
+    .slice(0, 3)
+    .map(s => s.trim());
+
+  if (sentences.length === 0) {
+    return '';
+  }
+
+  return sentences.join('. ') + '.';
+}
+
+function detectClassification(url) {
+  const u = url.toLowerCase();
+  if (u.includes('youtube.com') || u.includes('vimeo.com')) return 'video';
+  if (u.includes('twitter.com') || u.includes('x.com')) return 'thread';
+  if (u.includes('spotify.com/episode') || u.includes('podcast')) return 'podcast';
+  if (u.includes('arxiv.org') || u.includes('.pdf')) return 'paper';
+  return 'article';
+}
+
+async function handleSourceTracking(url, sourcesDbId, config) {
+  try {
+    const domain = new URL(url).hostname.replace('www.', '');
+
+    // Check if source exists
+    const existing = await notionRequest(`/databases/${sourcesDbId}/query`, 'POST', {
+      filter: {
+        property: 'URL',
+        url: { contains: domain }
+      },
+      page_size: 1
+    });
+
+    if (existing.results.length === 0) {
+      // Create new source
+      await notionRequest('/pages', 'POST', {
+        parent: { database_id: sourcesDbId },
+        properties: {
+          'Name': {
+            title: [{ text: { content: domain } }]
+          },
+          'URL': {
+            url: `https://${domain}`
+          },
+          'Type': {
+            select: { name: 'publication' }
+          },
+          'Signal Quality': {
+            select: { name: 'silver' }
+          }
+        }
+      });
+    }
+  } catch (error) {
+    console.log('Source tracking error:', error);
   }
 }
 
@@ -195,31 +365,67 @@ chrome.action.onClicked.addListener(async (tab) => {
 // ============================================
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // Helper for async handlers with error boundaries
+  const handleAsync = async (fn) => {
+    try {
+      const result = await fn();
+      sendResponse(result);
+    } catch (error) {
+      sendResponse({ success: false, error: error.message });
+    }
+  };
+
   if (message.action === 'saveToFlow') {
-    createFlowItem(message.data)
-      .then(result => sendResponse({ success: true, result }))
-      .catch(error => sendResponse({ success: false, error: error.message }));
-    return true; // Keep channel open for async response
+    handleAsync(async () => {
+      const result = await createFlowItem(message.data);
+      return { success: true, result };
+    });
+    return true;
   }
 
   if (message.action === 'saveSpark') {
-    createSpark(message.data)
-      .then(result => sendResponse({ success: true, result }))
-      .catch(error => sendResponse({ success: false, error: error.message }));
+    handleAsync(async () => {
+      const result = await createSpark(message.data);
+      return { success: true, result };
+    });
     return true;
   }
 
   if (message.action === 'testConnection') {
-    testConnection()
-      .then(result => sendResponse(result))
-      .catch(error => sendResponse({ success: false, error: error.message }));
+    handleAsync(testConnection);
     return true;
   }
 
   if (message.action === 'getConfig') {
-    getConfig()
-      .then(config => sendResponse({ config }))
-      .catch(error => sendResponse({ error: error.message }));
+    handleAsync(async () => ({ config: await getConfig() }));
     return true;
+  }
+
+  if (message.action === 'fetchLenses') {
+    handleAsync(async () => {
+      const lenses = await fetchLenses();
+      return { lenses };
+    });
+    return true;
+  }
+
+  if (message.action === 'checkDuplicate') {
+    handleAsync(async () => {
+      const isDuplicate = await checkDuplicate(message.url);
+      return { isDuplicate };
+    });
+    return true;
+  }
+
+  if (message.action === 'generateSummary') {
+    const summary = generateSummary(message.content);
+    sendResponse({ summary });
+    return false;
+  }
+
+  if (message.action === 'detectClassification') {
+    const classification = detectClassification(message.url);
+    sendResponse({ classification });
+    return false;
   }
 });
