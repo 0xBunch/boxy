@@ -1,30 +1,80 @@
-# BOXY 2.0
+# BOXY
 
-**Transform a firehose of captures into shipped work that matters.**
+Your second brain with opinions. **Capture → Synthesize → Ship.**
 
-BOXY is a Notion-based AI agent system that acts as your thinking partner — with memory, taste, and opinions.
+BOXY is a Notion-powered system for turning a firehose of captures into shipped work. It's built for people who save more than they process and have ideas that never become anything. Unlike typical "second brain" systems that optimize for organization, BOXY optimizes for *shipping*.
 
 ---
 
-## What Is This?
+## What's Here
 
-Most "second brain" systems optimize for capture and organization. BOXY optimizes for **shipping**.
+```
+BOXY/
+├── boxy_extension/     # Chrome extension for quick capture
+├── claude-skill/       # Claude Code skill for terminal BOXY
+├── SETUP.md            # Installation guide
+├── BOXY-AGENT.md       # AI agent instructions (for Notion AI)
+├── BOXY-DESIGN.md      # Database schema reference
+└── _archive/           # Old docs and reference files
+```
 
-It's built for people who:
-- Save more than they process
-- Have ideas that never become anything
-- Know they should write/create more but don't
-- Want an AI partner that pushes back, not just agrees
+---
+
+## Quick Start
+
+### Option A: Chrome Extension Only (5 min)
+
+Capture articles, quotes, and sparks from any webpage.
+
+1. Open Chrome → `chrome://extensions` → Enable "Developer mode"
+2. Click "Load unpacked" → Select `boxy_extension/` folder
+3. Click BOXY icon → Right-click → "Options"
+4. Add your Notion API key + database IDs
+5. Click the BOXY icon on any page to capture
+
+**Features:**
+- Save to Flow (articles, videos, podcasts)
+- Save Sparks (highlight text → click tooltip)
+- Auto-classification (YouTube → video, etc.)
+- Lenses tagging
+- Duplicate detection
+
+### Option B: Claude Code Skill Only (10 min)
+
+Use BOXY from your terminal with Claude Code.
+
+```bash
+# Copy skill
+cp -r claude-skill/boxy ~/.claude/skills/
+
+# Create config
+mkdir -p ~/.config/boxy
+cp claude-skill/boxy/config.template.json ~/.config/boxy/config.json
+
+# Edit config with your database IDs
+open ~/.config/boxy/config.json
+
+# Run in Claude Code
+/boxy
+```
+
+### Option C: Full Setup (45 min)
+
+Build the complete Notion database system + extension + skill.
+
+See **[SETUP.md](SETUP.md)** for step-by-step instructions.
+
+---
 
 ## The System
 
 ```
-CAPTURE          SYNTHESIZE         DEVELOP            SHIP
-┌─────────┐      ┌─────────┐       ┌─────────┐       ┌─────────┐
-│ ⚡Sparks │      │         │       │         │       │         │
-│ 📥Flow   │ ──▶  │ 🔮Lenses │ ──▶   │ 💡Ideas  │ ──▶   │ 📤Outputs│
-│ 🎯Sources│      │         │       │ 🎯Projects│      │         │
-└─────────┘      └─────────┘       └─────────┘       └─────────┘
+CAPTURE           SYNTHESIZE        DEVELOP           SHIP
+┌─────────┐       ┌─────────┐      ┌─────────┐      ┌─────────┐
+│ ⚡Sparks │       │         │      │         │      │         │
+│ 📥Flow   │  ──▶  │ 🔮Lenses │ ──▶  │ 💡Ideas  │ ──▶  │ 📤Outputs│
+│ 🎯Sources│       │         │      │ 🎯Projects│     │         │
+└─────────┘       └─────────┘      └─────────┘      └─────────┘
 ```
 
 **7 Databases:**
@@ -36,112 +86,25 @@ CAPTURE          SYNTHESIZE         DEVELOP            SHIP
 - 🎯 **Projects** — Groups of Ideas toward larger goals
 - 📤 **Outputs** — Finished, shipped work
 
-## The Agent
-
-BOXY isn't just a database. It's an AI agent with:
-
-**6 Operating Modes:**
-| Mode | What It Does |
-|------|--------------|
-| 🌊 Triage | Rapid-fire inbox processing |
-| 🔮 Synthesis | Find patterns, surface connections |
-| 🔨 Development | Build out specific Ideas |
-| 👹 Critique | Pressure-test and challenge |
-| 🚀 Ship | Focus only on finishing |
-| 📊 Review | Weekly/monthly retrospective |
-
-**Proactive Intelligence:**
-- Notices contradictions in your captures
-- Alerts when Ideas are stalling
-- Surfaces emerging patterns before you see them
-- Tracks source quality over time
-- Pushes you to ship
-
-**Memory:**
-- Learns your taste profile
-- Remembers what works and what dies
-- Adapts to your working patterns
-- Gets sharper over time
-
-## Files in This Repo
-
-| File | Purpose |
-|------|---------|
-| `SETUP-SCRIPT.md` | Step-by-step setup checklist |
-| `BOXY-2.0-DESIGN.md` | Complete database architecture and schema |
-| `BOXY-2.0-AGENT.md` | Full AI agent instructions (paste into Notion AI) |
-| `BOXY-2.0-HOMEPAGE.md` | Template for BOXY dashboard page |
-| `BOXY-2.0-ONBOARDING.md` | 20-minute onboarding experience |
-| `HOWTO.md` | The Fantastic Mr. BOXY — whimsical product guide |
-| `claude-skill/` | Claude Code skill for terminal-based BOXY |
-
-## Two Ways to Use BOXY
-
-### Option A: Notion AI (Simpler)
-Use BOXY directly in Notion via Notion AI custom instructions.
-
-1. Create the 8 databases in Notion (follow `SETUP-SCRIPT.md`)
-2. Paste `BOXY-2.0-AGENT.md` into Notion AI custom instructions
-3. Say "Setup BOXY" to run onboarding
-
-### Option B: Claude Code Skill (More Powerful)
-Use BOXY from your terminal with direct Notion MCP access.
-
-1. Create the 8 databases in Notion (follow `SETUP-SCRIPT.md`)
-2. Install the skill: `cp -r claude-skill/boxy ~/.claude/skills/`
-3. Configure: `cp claude-skill/boxy/config.template.json ~/.config/boxy/config.json`
-4. Add your database IDs to the config
-5. Run `/boxy` in Claude Code
-
-**Why Claude Code?**
-- Smarter model (Opus vs Notion's model)
-- Direct MCP database access
-- Works while you're coding
-- Can chain operations
-- Persistent conversation history
-
-### The Onboarding
-The onboarding (`BOXY-2.0-ONBOARDING.md`) takes ~20 minutes and covers:
-- Your consumption habits and sources
-- How you think and what interests you
-- Your work patterns and blockers
-- Your goals and aspirational work
-- ...and recommends a playlist for your first session
+---
 
 ## Philosophy
 
-1. **Capture is free, synthesis is expensive** — make capture effortless, invest in synthesis
+1. **Capture is free, synthesis is expensive** — make capture effortless
 2. **Ship over perfect** — shipped 80% beats unshipped 100%
 3. **Patterns over items** — individual captures matter less than what they reveal
-4. **Memory creates leverage** — tracking what works compounds over time
-5. **Challenge creates clarity** — the best ideas survive criticism
-6. **Energy is signal** — trust your gut about what's hot
-7. **Close the loop** — track outputs to learn what resonates
-
-## Voice
-
-BOXY is:
-- **Direct** — no hedging, no fluff
-- **Opinionated** — has views, pushes back
-- **Focused on shipping** — allergic to perfectionism
-- **Sharp** — asks pointed questions
-- **Honest** — says when something isn't working
-
-BOXY is not:
-- A yes-machine
-- A filing system
-- Impressed by volume
-- Patient with endless polishing
+4. **Energy is signal** — trust your gut about what's hot
 
 ---
 
-*Think less about organizing. Think more about shipping.*
+## Docs
+
+| File | What It Is |
+|------|------------|
+| [SETUP.md](SETUP.md) | Complete installation guide |
+| [BOXY-AGENT.md](BOXY-AGENT.md) | AI agent instructions for Notion AI |
+| [BOXY-DESIGN.md](BOXY-DESIGN.md) | Database schema and architecture |
 
 ---
 
-## Credits
-
-Built by [BUNCH](https://twitter.com/0xBunch)
-
-Powered by Claude (Anthropic)
-
+Built by [BUNCH](https://twitter.com/0xBunch) • Powered by Claude
