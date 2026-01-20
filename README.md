@@ -6,63 +6,43 @@ BOXY is a Notion-powered system for turning a firehose of captures into shipped 
 
 ---
 
-## What's Here
+## Quick Start
 
-```
-BOXY/
-├── boxy_extension/     # Chrome extension for quick capture
-├── claude-skill/       # Claude Code skill for terminal BOXY
-├── SETUP.md            # Installation guide
-├── BOXY-AGENT.md       # AI agent instructions (for Notion AI)
-├── BOXY-DESIGN.md      # Database schema reference
-└── _archive/           # Old docs and reference files
-```
+### 1. Buy + Install from Notion Marketplace
+
+One-click install. You get all 7 BOXY databases ready to go.
+
+### 2. Activate BOXY (Required)
+
+Create a Notion integration to enable all BOXY features:
+
+1. Go to [notion.so/my-integrations](https://www.notion.so/my-integrations) → **New integration** → name it "BOXY"
+2. Copy the API key (starts with `secret_`)
+3. On your BOXY page → **•••** → **Connections** → add "BOXY"
+
+Done. This API key works for all integrations below.
+
+### 3. Add Integrations (Optional)
+
+| Integration | What It Does | Setup |
+|-------------|--------------|-------|
+| **Chrome Extension** | Capture from any webpage | [Install from Chrome Web Store](#chrome-extension) |
+| **Claude Code Skill** | Terminal-based BOXY | [See SETUP.md](SETUP.md#optional-claude-code-skill) |
 
 ---
 
-## Quick Start
-
-### Option A: Chrome Extension Only (5 min)
+## Chrome Extension
 
 Capture articles, quotes, and sparks from any webpage.
 
-1. Open Chrome → `chrome://extensions` → Enable "Developer mode"
-2. Click "Load unpacked" → Select `boxy_extension/` folder
-3. Click BOXY icon → Right-click → "Options"
-4. Add your Notion API key + database IDs
-5. Click the BOXY icon on any page to capture
+**Install:** Chrome Web Store → search "BOXY" → **Add to Chrome**
 
-**Features:**
-- Save to Flow (articles, videos, podcasts)
-- Save Sparks (highlight text → click tooltip)
-- Auto-classification (YouTube → video, etc.)
-- Lenses tagging
-- Duplicate detection
+**Configure:** Right-click BOXY icon → **Options** → paste API key + BOXY page URL → **Save**
 
-### Option B: Claude Code Skill Only (10 min)
-
-Use BOXY from your terminal with Claude Code.
-
-```bash
-# Copy skill
-cp -r claude-skill/boxy ~/.claude/skills/
-
-# Create config
-mkdir -p ~/.config/boxy
-cp claude-skill/boxy/config.template.json ~/.config/boxy/config.json
-
-# Edit config with your database IDs
-open ~/.config/boxy/config.json
-
-# Run in Claude Code
-/boxy
-```
-
-### Option C: Full Setup (45 min)
-
-Build the complete Notion database system + extension + skill.
-
-See **[SETUP.md](SETUP.md)** for step-by-step instructions.
+**Use:**
+- Click BOXY icon to save current page to Flow
+- Highlight text → click ⚡ tooltip to save as Spark
+- `Alt+Shift+B` opens the modal
 
 ---
 
@@ -94,6 +74,20 @@ CAPTURE           SYNTHESIZE        DEVELOP           SHIP
 2. **Ship over perfect** — shipped 80% beats unshipped 100%
 3. **Patterns over items** — individual captures matter less than what they reveal
 4. **Energy is signal** — trust your gut about what's hot
+
+---
+
+## What's Here
+
+```
+BOXY/
+├── boxy_extension/     # Chrome extension for quick capture
+├── claude-skill/       # Claude Code skill for terminal BOXY
+├── SETUP.md            # Complete setup guide
+├── BOXY-AGENT.md       # AI agent instructions (for Notion AI)
+├── BOXY-DESIGN.md      # Database schema reference
+└── _archive/           # Old docs and reference files
+```
 
 ---
 

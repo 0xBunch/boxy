@@ -1,203 +1,99 @@
 # BOXY Setup Guide
 
-Complete setup for the BOXY system: Notion databases + Chrome extension + Claude Code skill.
-
-**Choose your path:**
-- [Part 1: Notion Databases](#part-1-notion-databases-25-min) — Required for everything
-- [Part 2: Chrome Extension](#part-2-chrome-extension-5-min) — Quick capture from browser
-- [Part 3: Claude Code Skill](#part-3-claude-code-skill-10-min) — Terminal-based BOXY
+Get BOXY running in ~10 minutes.
 
 ---
 
-## Part 1: Notion Databases (25 min)
+## Core Setup (Required)
 
-### Prerequisites
+These 4 steps activate BOXY and enable all integrations.
 
-1. Create a Notion integration at https://www.notion.so/my-integrations
-2. Copy the API key (starts with `secret_`)
-3. Create a new page called "BOXY" in your workspace
+### Step 1: Buy + Install
 
-### Database 1: 🎯 Sources
+1. Purchase BOXY from the Notion Marketplace
+2. Click **Duplicate** → select your workspace
+3. Wait for the page to load
 
-| Property | Type | Options |
-|----------|------|---------|
-| Name | Title | |
-| Type | Select | `person`, `newsletter`, `podcast`, `publication`, `community`, `tool` |
-| URL | URL | |
-| Why I Follow | Text | |
-| Signal Quality | Select | `gold`, `silver`, `bronze` |
+You now have all 7 BOXY databases in your workspace.
 
-### Database 2: 🔮 Lenses
+### Step 2: Create Notion Integration
 
-| Property | Type | Options |
-|----------|------|---------|
-| Lens | Title | |
-| Summary | Text | |
-| Core Question | Text | |
-| Status | Select | `emerging`, `active`, `mature`, `cooling`, `archived` |
+1. Go to [notion.so/my-integrations](https://www.notion.so/my-integrations)
+2. Click **New integration**
+3. Name it "BOXY", select your workspace, click **Submit**
+4. Click **Show** next to the secret, then **Copy**
 
-### Database 3: ⚡ Sparks
+Save this API key somewhere safe — you'll use it for all BOXY integrations.
 
-| Property | Type | Options |
-|----------|------|---------|
-| Spark | Title | |
-| Type | Select | `quote`, `thought`, `question`, `observation`, `hot-take`, `connection` |
-| Energy | Select | `hot`, `warm`, `cool` |
-| Lenses | Relation | → Lenses |
+### Step 3: Connect Integration to BOXY
 
-### Database 4: 📥 Flow
+1. Open your BOXY page in Notion
+2. Click **•••** (top right) → **Connections**
+3. Search for "BOXY" → click to add it
 
-| Property | Type | Options |
-|----------|------|---------|
-| Name | Title | |
-| URL | URL | |
-| My Take | Text | |
-| Summary | Text | |
-| Classification | Select | `article`, `video`, `note`, `thread`, `paper`, `podcast`, `tool`, `newsletter`, `book` |
-| Energy | Select | `hot`, `warm`, `cool` |
-| Status | Select | `new`, `processing`, `synthesized`, `archived` |
-| Lenses | Relation | → Lenses |
-| Date Saved | Date | |
+All child databases automatically inherit this connection.
 
-### Database 5: 💡 Ideas
+### Step 4: Done
 
-| Property | Type | Options |
-|----------|------|---------|
-| Idea | Title | |
-| Hook | Text | |
-| Core Argument | Text | |
-| Status | Select | `spark`, `developing`, `draft-ready`, `drafting`, `shipped`, `killed` |
-| Energy | Select | `hot`, `warm`, `cool`, `frozen` |
-| Confidence | Select | `hunch`, `hypothesis`, `thesis`, `proven` |
-| Lenses | Relation | → Lenses |
-| Related Flow | Relation | → Flow |
-| Related Sparks | Relation | → Sparks |
-
-### Database 6: 🎯 Projects
-
-| Property | Type | Options |
-|----------|------|---------|
-| Project | Title | |
-| Vision | Text | |
-| Status | Select | `exploring`, `active`, `paused`, `completed`, `killed` |
-| Ideas | Relation | → Ideas |
-
-### Database 7: 📤 Outputs
-
-| Property | Type | Options |
-|----------|------|---------|
-| Output | Title | |
-| Type | Select | `essay`, `thread`, `newsletter`, `talk`, `framework`, `product`, `video` |
-| URL | URL | |
-| Published | Date | |
-| Performance | Select | `hit`, `solid`, `meh`, `miss` |
-| Lenses | Relation | → Lenses |
-| Source Ideas | Relation | → Ideas |
-
-### Share Databases with Integration
-
-For each database:
-1. Click `•••` → `Connections`
-2. Add your BOXY integration
-
-### Collect Database IDs
-
-For each database, click `•••` → `Copy link`. The ID is the 32-character string in the URL.
-
-```
-Flow:     ________________________________
-Sparks:   ________________________________
-Lenses:   ________________________________
-Sources:  ________________________________
-Ideas:    ________________________________
-Projects: ________________________________
-Outputs:  ________________________________
-```
+BOXY is now activated. Your API key works for any integration below.
 
 ---
 
-## Part 2: Chrome Extension (5 min)
+## Optional: Chrome Extension
+
+Capture articles, quotes, and sparks from any webpage.
 
 ### Install
 
-1. Open Chrome → `chrome://extensions`
+**From Chrome Web Store (recommended):**
+- Search "BOXY" → click **Add to Chrome**
+
+**Or load unpacked (developers):**
+1. Go to `chrome://extensions`
 2. Enable **Developer mode** (top right)
-3. Click **Load unpacked**
-4. Select the `boxy_extension/` folder
+3. Click **Load unpacked** → select `boxy_extension/` folder
 
 ### Configure
 
-1. Right-click the BOXY extension icon → **Options**
-2. Enter your **Notion API key**
-3. Enter your **database IDs**:
-   - Flow Database ID (required)
-   - Sparks Database ID (required)
-   - Lenses Database ID (for tagging)
-   - Sources Database ID (optional, for source tracking)
-4. Click **Test Connection**
-5. Click **Save Settings**
+1. Right-click BOXY icon → **Options**
+2. Paste your **Notion API key**
+3. Paste your **BOXY page URL** (from Notion)
+4. Click **Save** — databases are auto-detected
 
 ### Use
 
 **Save to Flow:**
 - Click BOXY icon on any page
-- Fill in your take, select energy, add lenses
+- Add your take, select energy, tag with lenses
 - Click "Save to Flow"
 
 **Save a Spark:**
 - Highlight text on any page
 - Click the ⚡ tooltip that appears
-- Or right-click → "BOXY: Save as Spark"
 
 **Keyboard shortcut:** `Alt+Shift+B` opens the modal
 
 ---
 
-## Part 3: Claude Code Skill (10 min)
+## Optional: Claude Code Skill
 
-### Prerequisites
+Use BOXY from your terminal with Claude Code.
 
-- Claude Code installed
-- Notion MCP server configured (see below)
-
-### Install Skill
+### Install
 
 ```bash
-# Create skills directory
-mkdir -p ~/.claude/skills
-
-# Copy skill files
+# Copy skill to Claude
 cp -r claude-skill/boxy ~/.claude/skills/
 
-# Create config directory
+# Create config
 mkdir -p ~/.config/boxy
-
-# Create config from template
 cp claude-skill/boxy/config.template.json ~/.config/boxy/config.json
 ```
 
 ### Configure
 
-Edit `~/.config/boxy/config.json`:
-
-```json
-{
-  "workspace": "your-workspace-name",
-  "databases": {
-    "sparks": "YOUR_SPARKS_ID",
-    "flow": "YOUR_FLOW_ID",
-    "sources": "YOUR_SOURCES_ID",
-    "lenses": "YOUR_LENSES_ID",
-    "ideas": "YOUR_IDEAS_ID",
-    "projects": "YOUR_PROJECTS_ID",
-    "outputs": "YOUR_OUTPUTS_ID"
-  }
-}
-```
-
-### Configure Notion MCP
-
-If not already configured, add to `~/.claude.json`:
+1. Edit `~/.config/boxy/config.json` with your database IDs
+2. Add Notion MCP to `~/.claude.json`:
 
 ```json
 {
@@ -213,55 +109,43 @@ If not already configured, add to `~/.claude.json`:
 }
 ```
 
-Restart Claude Code after editing.
+3. Restart Claude Code
 
 ### Use
 
 ```bash
-# Start Claude Code
-claude
-
-# Run BOXY
-/boxy
-
-# Available commands
-/boxy status      # Dashboard
-/boxy triage      # Process inbox
-/boxy synthesize  # Find patterns
-/boxy develop X   # Build out idea X
-/boxy ship        # Focus on finishing
+/boxy              # Dashboard
+/boxy triage       # Process inbox
+/boxy synthesize   # Find patterns
+/boxy develop X    # Build out idea X
+/boxy ship         # Focus on finishing
 ```
 
 ---
 
 ## Troubleshooting
 
-### Extension: "BOXY not configured"
+### "BOXY not configured"
 
-Your API key or database IDs are missing. Open extension options and fill them in.
+API key or database IDs are missing. Open extension options and verify your settings.
 
-### Extension: "Connection failed"
+### "Connection failed"
 
-1. Check your Notion API key is correct
-2. Make sure databases are shared with your integration
-3. Verify database IDs are correct (32 characters, no dashes)
+1. Check your Notion API key is correct (starts with `secret_`)
+2. Make sure BOXY page is shared with your integration
+3. Verify the BOXY page URL is correct
 
-### Skill: "Can't connect to Notion"
+### "Can't connect to Notion" (Claude skill)
 
 1. Check Notion MCP is in `~/.claude.json`
 2. Verify API key is valid
 3. Restart Claude Code
 
-### Skill: "Database not found"
-
-1. Database IDs must match exactly
-2. Each database must be shared with your Notion integration
-
 ---
 
 ## Quick Reference
 
-### Extension Keyboard Shortcuts
+### Extension Shortcuts
 
 | Shortcut | Action |
 |----------|--------|
