@@ -1,0 +1,26 @@
+{
+  "workspace": "your-workspace-name",
+  "databases": {
+    "sparks": "PASTE_SPARKS_DATABASE_ID",
+    "flow": "PASTE_FLOW_DATABASE_ID",
+    "sources": "PASTE_SOURCES_DATABASE_ID",
+    "lenses": "PASTE_LENSES_DATABASE_ID",
+    "ideas": "PASTE_IDEAS_DATABASE_ID",
+    "projects": "PASTE_PROJECTS_DATABASE_ID",
+    "outputs": "PASTE_OUTPUTS_DATABASE_ID",
+    "sessions": "PASTE_SESSIONS_DATABASE_ID"
+  },
+  "preferences": {
+    "defaultMode": "triage",
+    "shipGoal": 4,
+    "reviewCadence": "weekly",
+    "favoriteFormats": ["essay", "thread", "newsletter"]
+  },
+  "profile": {
+    "archetype": "",
+    "primaryOutput": "",
+    "coreLens": "",
+    "primaryBlocker": "",
+    "secretSauce": ""
+  }
+}

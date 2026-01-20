@@ -67,19 +67,38 @@ BOXY isn't just a database. It's an AI agent with:
 
 | File | Purpose |
 |------|---------|
+| `SETUP-SCRIPT.md` | Step-by-step setup checklist |
 | `BOXY-2.0-DESIGN.md` | Complete database architecture and schema |
 | `BOXY-2.0-AGENT.md` | Full AI agent instructions (paste into Notion AI) |
 | `BOXY-2.0-HOMEPAGE.md` | Template for BOXY dashboard page |
 | `BOXY-2.0-ONBOARDING.md` | 20-minute onboarding experience |
-| `BOXY 1.0 files` | Original template (legacy) |
+| `HOWTO.md` | The Fantastic Mr. BOXY — whimsical product guide |
+| `claude-skill/` | Claude Code skill for terminal-based BOXY |
 
-## Setup
+## Two Ways to Use BOXY
 
-### Quick Start
-1. Create the 7 databases in Notion with schemas from `BOXY-2.0-DESIGN.md`
-2. Create a BOXY homepage using `BOXY-2.0-HOMEPAGE.md`
-3. Add the agent instructions from `BOXY-2.0-AGENT.md` to your Notion AI custom instructions
-4. Say "Setup BOXY" to run the onboarding
+### Option A: Notion AI (Simpler)
+Use BOXY directly in Notion via Notion AI custom instructions.
+
+1. Create the 8 databases in Notion (follow `SETUP-SCRIPT.md`)
+2. Paste `BOXY-2.0-AGENT.md` into Notion AI custom instructions
+3. Say "Setup BOXY" to run onboarding
+
+### Option B: Claude Code Skill (More Powerful)
+Use BOXY from your terminal with direct Notion MCP access.
+
+1. Create the 8 databases in Notion (follow `SETUP-SCRIPT.md`)
+2. Install the skill: `cp -r claude-skill/boxy ~/.claude/skills/`
+3. Configure: `cp claude-skill/boxy/config.template.json ~/.config/boxy/config.json`
+4. Add your database IDs to the config
+5. Run `/boxy` in Claude Code
+
+**Why Claude Code?**
+- Smarter model (Opus vs Notion's model)
+- Direct MCP database access
+- Works while you're coding
+- Can chain operations
+- Persistent conversation history
 
 ### The Onboarding
 The onboarding (`BOXY-2.0-ONBOARDING.md`) takes ~20 minutes and covers:
@@ -122,7 +141,7 @@ BOXY is not:
 
 ## Credits
 
-Built by [BUNCH](https://twitter.com/bunch)
+Built by [BUNCH](https://twitter.com/0xBunch)
 
-Powered by Claude (Anthropic) via Notion AI
+Powered by Claude (Anthropic)
 
