@@ -1,0 +1,186 @@
+/* BOXY Content Script Styles */
+
+/* Toast Container */
+.boxy-toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2147483647;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  pointer-events: none;
+}
+
+/* Individual Toast */
+.boxy-toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: #1a1a2e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  color: #ffffff;
+  font-size: 14px;
+  min-width: 280px;
+  max-width: 400px;
+  pointer-events: auto;
+  transform: translateX(120%);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.boxy-toast.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.boxy-toast.hide {
+  transform: translateX(120%);
+  opacity: 0;
+}
+
+/* Toast Icons */
+.boxy-toast-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+/* Toast Content */
+.boxy-toast-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.boxy-toast-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.boxy-toast-message {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Toast Types */
+.boxy-toast.success {
+  border-left: 3px solid #10b981;
+}
+
+.boxy-toast.success .boxy-toast-icon {
+  color: #10b981;
+}
+
+.boxy-toast.error {
+  border-left: 3px solid #ef4444;
+}
+
+.boxy-toast.error .boxy-toast-icon {
+  color: #ef4444;
+}
+
+.boxy-toast.loading {
+  border-left: 3px solid #3b82f6;
+}
+
+.boxy-toast.loading .boxy-toast-icon {
+  animation: boxy-spin 1s linear infinite;
+}
+
+@keyframes boxy-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Close Button */
+.boxy-toast-close {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: 0;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.boxy-toast-close:hover {
+  color: #ffffff;
+}
+
+/* Selection Tooltip */
+.boxy-selection-tooltip {
+  position: absolute;
+  z-index: 2147483646;
+  display: flex;
+  gap: 4px;
+  padding: 6px 8px;
+  background: #1a1a2e;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+.boxy-selection-tooltip.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.boxy-tooltip-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: inherit;
+}
+
+.boxy-tooltip-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.boxy-tooltip-btn.primary {
+  background: #3b82f6;
+}
+
+.boxy-tooltip-btn.primary:hover {
+  background: #2563eb;
+}
+
+/* Highlight Animation */
+@keyframes boxy-highlight {
+  0% { background-color: rgba(59, 130, 246, 0.3); }
+  100% { background-color: transparent; }
+}
+
+.boxy-saved-highlight {
+  animation: boxy-highlight 1.5s ease-out;
+}

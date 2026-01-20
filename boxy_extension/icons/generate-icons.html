@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>BOXY Icon Generator</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      padding: 40px;
+      background: #1a1a2e;
+      color: white;
+    }
+    .icon-row {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    canvas {
+      border: 1px solid #333;
+    }
+    button {
+      padding: 8px 16px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    h1 { margin-bottom: 30px; }
+    p { color: #888; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h1>BOXY Icon Generator</h1>
+  <p>Click each "Download" button to save the PNG icon file.</p>
+
+  <div class="icon-row">
+    <canvas id="icon16" width="16" height="16"></canvas>
+    <span>16x16</span>
+    <button onclick="download('icon16', 'icon16.png')">Download</button>
+  </div>
+
+  <div class="icon-row">
+    <canvas id="icon32" width="32" height="32"></canvas>
+    <span>32x32</span>
+    <button onclick="download('icon32', 'icon32.png')">Download</button>
+  </div>
+
+  <div class="icon-row">
+    <canvas id="icon48" width="48" height="48"></canvas>
+    <span>48x48</span>
+    <button onclick="download('icon48', 'icon48.png')">Download</button>
+  </div>
+
+  <div class="icon-row">
+    <canvas id="icon128" width="128" height="128"></canvas>
+    <span>128x128</span>
+    <button onclick="download('icon128', 'icon128.png')">Download</button>
+  </div>
+
+  <script>
+    function drawIcon(canvas) {
+      const ctx = canvas.getContext('2d');
+      const size = canvas.width;
+      const padding = size * 0.1;
+      const boxSize = size - (padding * 2);
+
+      // Background
+      ctx.fillStyle = '#2563eb';
+      ctx.beginPath();
+      ctx.roundRect(0, 0, size, size, size * 0.15);
+      ctx.fill();
+
+      // Box outline (cube front face)
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = Math.max(1, size * 0.06);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      const x = padding;
+      const y = padding + boxSize * 0.15;
+      const w = boxSize * 0.7;
+      const h = boxSize * 0.7;
+      const depth = boxSize * 0.25;
+
+      // Front face
+      ctx.strokeRect(x, y, w, h);
+
+      // Top face (parallelogram)
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + depth, y - depth * 0.6);
+      ctx.lineTo(x + w + depth, y - depth * 0.6);
+      ctx.lineTo(x + w, y);
+      ctx.stroke();
+
+      // Right face
+      ctx.beginPath();
+      ctx.moveTo(x + w, y);
+      ctx.lineTo(x + w + depth, y - depth * 0.6);
+      ctx.lineTo(x + w + depth, y + h - depth * 0.6);
+      ctx.lineTo(x + w, y + h);
+      ctx.stroke();
+    }
+
+    // Draw all icons
+    ['icon16', 'icon32', 'icon48', 'icon128'].forEach(id => {
+      drawIcon(document.getElementById(id));
+    });
+
+    function download(canvasId, filename) {
+      const canvas = document.getElementById(canvasId);
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+</body>
+</html>

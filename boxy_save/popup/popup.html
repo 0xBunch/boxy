@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Save to BOXY</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">📦</span>
+        <span class="logo-text">BOXY</span>
+      </div>
+      <button class="settings-btn" id="settingsBtn" title="Settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Setup Required State -->
+    <div class="setup-required" id="setupRequired" style="display: none;">
+      <div class="setup-icon">⚙️</div>
+      <h2>Setup Required</h2>
+      <p>Connect your Notion databases to start saving.</p>
+      <button class="btn btn-primary" id="openSetupBtn">Open Settings</button>
+    </div>
+
+    <!-- Main Form -->
+    <main class="main-form" id="mainForm">
+      <!-- Title -->
+      <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text" id="title" placeholder="Page title..." />
+      </div>
+
+      <!-- URL (read-only) -->
+      <div class="form-group">
+        <label for="url">URL</label>
+        <input type="text" id="url" readonly />
+      </div>
+
+      <!-- Summary (auto-generated) -->
+      <div class="form-group">
+        <label for="summary">
+          Summary
+          <button class="btn-small" id="regenerateSummary" title="Regenerate summary">↻</button>
+        </label>
+        <textarea id="summary" rows="2" placeholder="Auto-generated summary..."></textarea>
+        <div class="generating-indicator" id="summaryLoading" style="display: none;">
+          <span class="spinner"></span> Generating summary...
+        </div>
+      </div>
+
+      <!-- My Take (required) -->
+      <div class="form-group">
+        <label for="myTake">
+          My Take <span class="required">*</span>
+        </label>
+        <textarea id="myTake" rows="2" placeholder="Why did this catch your eye?" required></textarea>
+        <div class="helper-text">What made you save this? (Required)</div>
+      </div>
+
+      <!-- Energy + Classification Row -->
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label>Energy</label>
+          <div class="energy-selector">
+            <button class="energy-btn" data-energy="🔥 hot" title="Hot">🔥</button>
+            <button class="energy-btn selected" data-energy="warm" title="Warm">☀️</button>
+            <button class="energy-btn" data-energy="cool" title="Cool">❄️</button>
+          </div>
+        </div>
+
+        <div class="form-group flex-1">
+          <label for="classification">Type</label>
+          <select id="classification">
+            <option value="article">Article</option>
+            <option value="video">Video</option>
+            <option value="thread">Thread</option>
+            <option value="podcast">Podcast</option>
+            <option value="paper">Paper</option>
+            <option value="note">Note</option>
+            <option value="link">Link</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Lenses -->
+      <div class="form-group">
+        <label>Lenses</label>
+        <div class="lens-selector" id="lensSelector">
+          <div class="selected-lenses" id="selectedLenses"></div>
+          <select id="lensDropdown" class="lens-dropdown">
+            <option value="">+ Add lens...</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Duplicate Warning -->
+      <div class="duplicate-warning" id="duplicateWarning" style="display: none;">
+        <span class="warning-icon">⚠️</span>
+        <span>This URL may already be in your Flow</span>
+      </div>
+
+      <!-- Save Button -->
+      <button class="btn btn-primary btn-large" id="saveToFlow">
+        <span class="btn-icon">📥</span>
+        Save to Flow
+      </button>
+
+      <!-- Divider -->
+      <div class="divider">
+        <span>or</span>
+      </div>
+
+      <!-- Spark Option -->
+      <button class="btn btn-secondary" id="saveAsSpark">
+        <span class="btn-icon">⚡</span>
+        Save as Spark instead
+      </button>
+    </main>
+
+    <!-- Loading State -->
+    <div class="loading-state" id="loadingState" style="display: none;">
+      <div class="spinner large"></div>
+      <p>Saving to BOXY...</p>
+    </div>
+
+    <!-- Success State -->
+    <div class="success-state" id="successState" style="display: none;">
+      <div class="success-icon">✓</div>
+      <h2>Saved!</h2>
+      <p id="successMessage">Added to Flow</p>
+      <button class="btn btn-secondary" id="closeSuccess">Close</button>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-state" id="errorState" style="display: none;">
+      <div class="error-icon">✕</div>
+      <h2>Error</h2>
+      <p id="errorMessage">Something went wrong</p>
+      <button class="btn btn-secondary" id="retryBtn">Try Again</button>
+    </div>
+  </div>
+
+  <script src="popup.js" type="module"></script>
+</body>
+</html>

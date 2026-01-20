@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BOXY Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">📦</span>
+        <h1>BOXY Settings</h1>
+      </div>
+      <p class="subtitle">Connect your Notion databases</p>
+    </header>
+
+    <main class="main">
+      <!-- Connection Status -->
+      <div class="status-card" id="statusCard">
+        <div class="status-indicator disconnected" id="statusIndicator"></div>
+        <span id="statusText">Not connected</span>
+      </div>
+
+      <!-- API Key Section -->
+      <section class="section">
+        <h2>Notion API Key</h2>
+        <p class="section-description">
+          Get your API key from <a href="https://www.notion.so/my-integrations" target="_blank">notion.so/my-integrations</a>
+        </p>
+
+        <div class="form-group">
+          <label for="apiKey">Internal Integration Token</label>
+          <div class="input-with-button">
+            <input type="password" id="apiKey" placeholder="secret_..." />
+            <button class="btn btn-secondary btn-small" id="toggleApiKey">Show</button>
+          </div>
+          <p class="helper-text">
+            Create an internal integration and copy the token. Make sure to share your BOXY databases with the integration.
+          </p>
+        </div>
+      </section>
+
+      <!-- Database IDs Section -->
+      <section class="section">
+        <h2>Database IDs</h2>
+        <p class="section-description">
+          Open each database, click ••• → Copy link, and extract the ID from the URL.
+          <br>
+          <code>notion.so/workspace/Name-<strong>abc123def456...</strong></code>
+        </p>
+
+        <div class="form-group">
+          <label for="flowDb">
+            📥 Flow Database <span class="required">*</span>
+          </label>
+          <input type="text" id="flowDb" placeholder="32-character database ID" />
+        </div>
+
+        <div class="form-group">
+          <label for="sparksDb">
+            ⚡ Sparks Database <span class="required">*</span>
+          </label>
+          <input type="text" id="sparksDb" placeholder="32-character database ID" />
+        </div>
+
+        <div class="form-group">
+          <label for="lensesDb">
+            🔮 Lenses Database
+          </label>
+          <input type="text" id="lensesDb" placeholder="32-character database ID (optional)" />
+          <p class="helper-text">Required for lens selection in the popup</p>
+        </div>
+
+        <div class="form-group">
+          <label for="sourcesDb">
+            🎯 Sources Database
+          </label>
+          <input type="text" id="sourcesDb" placeholder="32-character database ID (optional)" />
+          <p class="helper-text">Enables automatic source tracking</p>
+        </div>
+      </section>
+
+      <!-- Preferences Section -->
+      <section class="section">
+        <h2>Preferences</h2>
+
+        <div class="form-group">
+          <label for="defaultEnergy">Default Energy</label>
+          <select id="defaultEnergy">
+            <option value="🔥 hot">🔥 Hot</option>
+            <option value="warm" selected>☀️ Warm</option>
+            <option value="cool">❄️ Cool</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="defaultClassification">Default Classification</label>
+          <select id="defaultClassification">
+            <option value="article" selected>Article</option>
+            <option value="video">Video</option>
+            <option value="thread">Thread</option>
+            <option value="podcast">Podcast</option>
+            <option value="note">Note</option>
+            <option value="link">Link</option>
+          </select>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label>
+            <input type="checkbox" id="autoClose" checked />
+            Auto-close popup after saving
+          </label>
+        </div>
+      </section>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button class="btn btn-secondary" id="testConnection">
+          Test Connection
+        </button>
+        <button class="btn btn-primary" id="saveSettings">
+          Save Settings
+        </button>
+      </div>
+
+      <!-- Messages -->
+      <div class="message success" id="successMessage" style="display: none;">
+        ✓ Settings saved successfully!
+      </div>
+
+      <div class="message error" id="errorMessage" style="display: none;">
+        ✕ <span id="errorText">Something went wrong</span>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>
+        BOXY v1.0.0 •
+        <a href="https://github.com/0xBunch/boxy" target="_blank">GitHub</a> •
+        <a href="https://github.com/0xBunch/boxy/issues" target="_blank">Report Issue</a>
+      </p>
+    </footer>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>
